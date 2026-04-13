@@ -1,5 +1,6 @@
 import java.util.Arrays;
 import java.util.Random;
+import java.util.Scanner;
 
 public class App {
     static final int[] tamanhosTesteGrande =  { 31_250_000, 62_500_000, 125_000_000, 250_000_000, 500_000_000 };
@@ -38,21 +39,87 @@ public class App {
 
 
     public static void main(String[] args) {
-        int tam = 20;
-        Integer[] vetor = gerarVetorObjetos(tam);
+        int opcao = 0;
+        Scanner teclado = new Scanner(System.in);
 
-        BubbleSort<Integer> bolha = new BubbleSort<>();
+        do {
+            int tam = 20;
+            Integer[] vetor = gerarVetorObjetos(tam);
 
-        Integer[] vetorOrdenadoBolha = bolha.ordenar(vetor);
+            System.out.print("* 1. BubbleSort;\n* 2. InsertionSort;\n* 3. SelectionSort;\n* 4. MergeSort;\n* 0. Encerrar.\n\nSelecione a opção: ");
+            opcao = Integer.parseInt(teclado.nextLine());
 
-        System.out.println("\nVetor ordenado método Bolha:");
-        System.out.println("Comparações: " + bolha.getComparacoes());
-        System.out.println("Movimentações: " + bolha.getMovimentacoes());
-        System.out.println("Tempo de ordenação (ms): " + bolha.getTempoOrdenacao());
+            switch(opcao) {
+                case 1:
+                    BubbleSort<Integer> bolha = new BubbleSort<>();
+                    Integer[] vetorOrdenadoBolha = statsOrdenacao(bolha, vetor, "BubbleSort");
+                    imprimirVetor(vetorOrdenadoBolha);
+                    esperar(teclado);
+                    break;
+                case 2:
+                    InsertionSort<Integer> insercao = new InsertionSort<>();
+                    Integer[] vetorOrdenadoInsercao = statsOrdenacao(insercao, vetor, "InsertionSort");
+                    imprimirVetor(vetorOrdenadoInsercao);
+                    esperar(teclado);
+                    break;
+                case 3:
+                    SelectionSort<Integer> selecao = new SelectionSort<>();
+                    Integer[] vetorOrdenadoSelecao = statsOrdenacao(selecao, vetor, "SelectionSort");
+                    imprimirVetor(vetorOrdenadoSelecao);
+                    esperar(teclado);
+                    break;
+                case 4:
+                    MergeSort<Integer> merge = new MergeSort<>();
+                    Integer[] vetorOrdenadoMerge = statsOrdenacao(merge, vetor, "MergeSort");
+                    imprimirVetor(vetorOrdenadoMerge);
+                    esperar(teclado);
+                    break;
+                case 0:
+                    break;
+                default:
+                    System.out.println("Opção inválida!");
+                    esperar(teclado);
+                    break;
+            }
+        } while(opcao != 0);
 
-        /* TO DO
-        *Fazer a implementacao do restante do main para a ordenacao 
-        *  com os algoritmos InsertionSort e SelectionSort
+        teclado.close();
+
+
+        /*
+        
+
+        
+
+        
+
+
         */
+    }
+
+    private static <T extends Comparable<T>> T[] statsOrdenacao(IOrdenador<T> ordenador, T[] vetor, String nomeOrdenacao) {
+        T[] vetorOrdenado = ordenador.ordenar(vetor);
+
+        System.out.println("\nVetor ordenado método " + nomeOrdenacao + ":");
+        System.out.println("Comparações: " + ordenador.getComparacoes());
+        System.out.println("Movimentações: " + ordenador.getMovimentacoes());
+        System.out.println("Tempo de ordenação (ms): " + ordenador.getTempoOrdenacao());
+
+        return vetorOrdenado;
+    }
+
+    private static <T> void imprimirVetor(T[] vetor) {
+        StringBuilder builder = new StringBuilder("Vetor: ");
+
+        for(int i = 0; i < vetor.length; i++) {
+            String pontuacao = i == vetor.length - 1 ? ". " : ", ";
+            builder.append(vetor[i] + pontuacao);
+        }
+
+        System.out.println(builder.toString());
+    }
+
+    private static void esperar(Scanner teclado) {
+        teclado.nextLine();
     }
 }
