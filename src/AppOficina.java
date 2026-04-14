@@ -166,8 +166,25 @@ public class AppOficina {
         cabecalho();
         
         int opcao = exibirMenuOrdenadores();
-        //Complete com a sua lógica
-        ordenador = null;
+        IOrdenador<Produto> ordenador;
+
+        switch (opcao) {
+            case 1:
+                ordenador = new Bubblesort<Produto>();
+                break;
+            case 2:
+                ordenador = new InsertSort<Produto>();
+                break;
+            case 3:
+                ordenador = new SelectionSort<Produto>();
+                break;
+            default:
+                ordenador = new Mergesort<Produto>();
+                break;
+        }
+        ComparadorPorCodigo comp = new ComparadorPorCodigo();
+        Produto[] ListaOrdenada = ordenador.ordenar(produtos, comp);
+        produtos = ListaOrdenada;
     }
 
     static void embaralharProdutos(){
