@@ -38,6 +38,8 @@ public class AppOficina {
     static int quantProdutos = 0;
     static String nomeArquivoDados = "produtos.txt";
     static IOrdenador<Produto> ordenador;
+    static Produto[] ordenadosPorId;
+    static Produto[] ordenadosPorDescricao;
 
     // #region utilidades
     static Scanner teclado;
@@ -122,22 +124,45 @@ public class AppOficina {
             System.out.println("Arquivo não encontrado. Produtos não carregados");
             dadosCarregados = null;
         }
+        ordenadosPorId = new Mergesort<Produto>().ordenar(dadosCarregados, new ComparadorPorCodigo());
+        ordenadosPorDescricao = new Mergesort<Produto>().ordenar(dadosCarregados, new ComparadorPorDescricao());
         return dadosCarregados;
     }
 
 
     static Produto localizarProduto() {
-        cabecalho();
-        System.out.println("Localizando um produto");
-        int numero = lerNumero("Digite o identificador do produto", Integer.class);
-        Produto localizado = null;
-        
-        for (int i = 0; i < quantProdutos && localizado == null; i++) {
-            if (produtos[i].hashCode() == numero)
-                localizado = produtos[i];
+    cabecalho();
+    System.out.println("1 - Buscar por código");
+    System.out.println("2 - Buscar por descrição");
+    int criterio = lerNumero("Critério", Integer.class);
+
+    if (criterio == 1) {
+        int codigo = lerNumero("Digite o código", Integer.class);
+        int ini = 0, fim = quantProdutos - 1;
+        while (ini <= fim) {
+            int meio = (ini + fim) / 2;
+            int idMeio = ordenadosPorId[meio].hashCode();
+            if (idMeio == codigo) return ordenadosPorId[meio];
+            else if (idMeio < codigo) ini = meio + 1;
+            else fim = meio - 1;
         }
-        return localizado;
+    } else {
+        System.out.print("Digite a descrição: ");
+        String desc = teclado.nextLine();
+        int ini = 0, fim = quantProdutos - 1;
+        while (ini <= fim) {
+            int meio = (ini + fim) / 2;
+            // compareTo de Produto já compara por descrição
+            int cmp = ordenadosPorDescricao[meio].compareTo(
+                new ProdutoNaoPerecivel(desc, 0.01)
+            );
+            if (cmp == 0) return ordenadosPorDescricao[meio];
+            else if (cmp < 0) ini = meio + 1;
+            else fim = meio - 1;
+        }
     }
+    return null;
+}
 
     private static void mostrarProduto(Produto produto) {
         cabecalho();
