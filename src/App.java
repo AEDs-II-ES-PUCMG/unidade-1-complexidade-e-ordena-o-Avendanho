@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Scanner;
 
 /**
@@ -31,9 +32,11 @@ import java.util.Scanner;
  * SOFTWARE.
  */
 
-public class AppOficina {
+public class App {
 
     static final int MAX_PEDIDOS = 100;
+    static Pedido[] pedidos;
+    static int quantPedidos = 0;
     static Produto[] produtos;
     static int quantProdutos = 0;
     static String nomeArquivoDados = "produtos.txt";
@@ -44,7 +47,28 @@ public class AppOficina {
     // #region utilidades
     static Scanner teclado;
 
-    
+    public static void main(String[] args) {
+        teclado = new Scanner(System.in);
+        
+        produtos = carregarProdutos(nomeArquivoDados);
+        embaralharProdutos();
+
+        int opcao = -1;
+        
+        do {
+            opcao = exibirMenuPrincipal();
+            switch (opcao) {
+                case 1 -> mostrarProduto(localizarProduto());
+                case 2 -> filtrarPorPrecoMaximo();
+                case 3 -> ordenarProdutos();
+                case 4 -> embaralharProdutos();
+                case 5 -> listarProdutos();
+                case 0 -> System.out.println("FLW VLW OBG VLT SMP.");
+            }
+            pausa();
+        }while (opcao != 0);
+        teclado.close();
+    }     
 
     static <T extends Number> T lerNumero(String mensagem, Class<T> classe) {
         System.out.print(mensagem + ": ");
@@ -87,15 +111,16 @@ public class AppOficina {
     }
 
     static int exibirMenuOrdenadores() {
-        cabecalho();
-        System.out.println("1 - Bolha");
-        System.out.println("2 - Inserção");
-        System.out.println("3 - Seleção");
-        System.out.println("4 - Mergesort");
-        System.out.println("0 - Finalizar");
-       
-        return lerNumero("Digite sua opção", Integer.class);
-    }
+    cabecalho();
+    System.out.println("1 - Bolha");
+    System.out.println("2 - Inserção");
+    System.out.println("3 - Seleção");
+    System.out.println("4 - Mergesort");
+    System.out.println("5 - Heapsort");
+    System.out.println("0 - Voltar");
+
+    return lerNumero("Digite sua opção", Integer.class);
+}
 
     static int exibirMenuComparadores() {
         cabecalho();
@@ -152,7 +177,6 @@ public class AppOficina {
         int ini = 0, fim = quantProdutos - 1;
         while (ini <= fim) {
             int meio = (ini + fim) / 2;
-            // compareTo de Produto já compara por descrição
             int cmp = ordenadosPorDescricao[meio].compareTo(
                 new ProdutoNaoPerecivel(desc, 0.01)
             );
@@ -198,7 +222,7 @@ public class AppOficina {
                 ordenador = new Bubblesort<Produto>();
                 break;
             case 2:
-                ordenador = new InsertSort<Produto>();
+                ordenador = new InsertionSort<Produto>();
                 break;
             case 3:
                 ordenador = new SelectionSort<Produto>();
@@ -229,28 +253,79 @@ public class AppOficina {
         for (int i = 0; i < quantProdutos; i++) {
             System.out.println(produtos[i]);
         }
+    }         
+
+static void ordenarPedidos() {
+    cabecalho();
+
+    int opcaoOrdenador = exibirMenuOrdenadores();
+    if (opcaoOrdenador == 0) return;
+
+    IOrdenador<Pedido> ordenador;
+    switch (opcaoOrdenador) {
+        case 1:  ordenador = new Bubblesort<>();    
+        break;
+        case 2:  ordenador = new InsertionSort<>();    
+        break;
+        case 3:  ordenador = new SelectionSort<>(); 
+        break;
+        case 4:  ordenador = new Mergesort<>();     
+        break;
+        default: ordenador = new Heapsort<>();      
+        break;
     }
 
-    public static void main(String[] args) {
-        teclado = new Scanner(System.in);
-        
-        produtos = carregarProdutos(nomeArquivoDados);
-        embaralharProdutos();
+    cabecalho();
+    System.out.println("1 - Valor Final do Pedido");
+    System.out.println("2 - Volume Total de Itens");
+    System.out.println("3 - Índice de Economia (decrescente)");
+    int criterio = lerNumero("Critério", Integer.class);
 
-        int opcao = -1;
-        
-        do {
-            opcao = exibirMenuPrincipal();
-            switch (opcao) {
-                case 1 -> mostrarProduto(localizarProduto());
-                case 2 -> filtrarPorPrecoMaximo();
-                case 3 -> ordenarProdutos();
-                case 4 -> embaralharProdutos();
-                case 5 -> listarProdutos();
-                case 0 -> System.out.println("FLW VLW OBG VLT SMP.");
-            }
-            pausa();
-        }while (opcao != 0);
-        teclado.close();
-    }                        
+    Comparator<Pedido> comparador;
+    switch (criterio) {
+        case 2:  comparador = new ComparadorCriterioB();     
+        break;
+        case 3:  comparador = new ComparadorCriterioC();   
+        break;
+        default: comparador = new ComparadorCriterioA(); 
+        break;
+    }
+
+    ordenador.setComparador(comparador);
+
+    long inicio = System.currentTimeMillis();
+    pedidos = ordenador.ordenar(pedidos);
+    long fim = System.currentTimeMillis();
+
+    System.out.printf("Ordenação concluída em %d ms. Comparações: %d | Movimentações: %d%n",
+            fim - inicio, ordenador.getComparacoes(), ordenador.getMovimentacoes());
+}
+
+static void localizarPedidosPremium() {
+    cabecalho();
+    double corte = lerNumero("Digite o valor de corte", Double.class);
+
+    Mergesort<Pedido> sorter = new Mergesort<>();
+    sorter.setComparador(new ComparadorCriterioA());
+    Pedido[] ordenadosPorValor = sorter.ordenar(pedidos.clone());
+
+    int ini = 0, fim = quantPedidos - 1, inicioFaixa = quantPedidos;
+    while (ini <= fim) {
+        int meio = (ini + fim) / 2;
+        if (ordenadosPorValor[meio].valorFinal() >= corte) {
+            inicioFaixa = meio;
+            fim = meio - 1;
+        } else {
+            ini = meio + 1;
+        }
+    }
+
+    if (inicioFaixa == quantPedidos) {
+        System.out.println("Nenhum pedido encontrado acima do valor informado.");
+    } else {
+        for (int i = inicioFaixa; i < quantPedidos; i++) {
+            System.out.println(ordenadosPorValor[i]);
+        }
+    }
+}
 }
